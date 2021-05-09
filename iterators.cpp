@@ -35,7 +35,25 @@ template <typename Iterator>
 void myAdvance(Iterator& it, int n)
 {
 	myAdvanceHelper(it, n, typename std::iterator_traits<Iterator>::iterator_category());
+}
 
+template <typename Iterator, typename IteratorCategory>
+void myDistHelper(Iterator& it1, Iterator& it2, IteratorCategory)
+{
+
+}
+
+template <typename Iterator>
+void myDistHelper(Iterator& it1, Iterator& it2, std::random_access_iterator_tag)
+{
+
+}
+
+
+template <typename Iterator>
+void myDistance(Iterator& it1, Iterator& it2)
+{
+	myDistHelper(it1, it2, typename std::iterator_traits<Iterator>::iterator_category());
 }
 
 int main()
@@ -51,8 +69,8 @@ int main()
 
 	// std::advance - различное поведение в зависимости от категории итератора
 	// std::advance(it, 3);
-	myAdvance(it, 3);
-	std::cout << *it << std::endl;
+	// myAdvance(it, 3);
+	// std::cout << *it << std::endl;
 
 	// std::distance - различное поведение в зависимости от категории итератора
 	std::list<int>::iterator it2 = v1.end();
