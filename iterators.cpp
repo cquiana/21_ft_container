@@ -51,7 +51,7 @@ void myDistHelper(Iterator& it1, Iterator& it2, std::random_access_iterator_tag)
 
 
 template <typename Iterator>
-void myDistance(Iterator& it1, Iterator& it2)
+typename Iterator::difference_type myDistance(Iterator& it1, Iterator& it2)
 {
 	myDistHelper(it1, it2, typename std::iterator_traits<Iterator>::iterator_category());
 }
@@ -75,6 +75,9 @@ int main()
 	// std::distance - различное поведение в зависимости от категории итератора
 	std::list<int>::iterator it2 = v1.end();
 	// реализация похожа на advance
+	ptrdiff_t ptr_d;
+	ptr_d = it2 - it;
+	std::cout << ptr_d << std::endl;
 	std::cout << std::distance(it, it2) << std::endl;
 
 
