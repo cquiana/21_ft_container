@@ -3,109 +3,163 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <limits>
 
 namespace ft
 {
 	template <typename T, class Alloc = std::allocator<T> >
 	class vector
 	{
-	// public:
-	// 	typedef	T											value_type;
-	// 	typedef	Alloc										allocator_type;
-	// 	typedef typename allocator_type::reference			reference;
-	// 	typedef typename allocator_type::const_reference	const_reference;
-	// 	typedef typename allocator_type::pointer			pointer;
-	// 	typedef typename allocator_type::const_pointer		const_pointer;
+	public:
+		typedef	T											value_type;
+		typedef	Alloc										allocator_type;
+		typedef typename allocator_type::reference			reference;
+		typedef typename allocator_type::const_reference	const_reference;
+		typedef typename allocator_type::pointer			pointer;
+		typedef typename allocator_type::const_pointer		const_pointer;
+
+		/*
+		typedef for iterators
+		*/
+
+		typedef std::size_t									size_type;
+		typedef std::ptrdiff_t								difference_type;
 
 	private:
-		T* _array;
-		size_t _size;
-		size_t _capacity;
-		Alloc _alloc;
+		value_type*		_array;
+		size_type		_size;
+		size_type 		_capacity;
+		allocator_type	_alloc;
 
 	public:
-		vector(size_t n, const T &value = T(), const Alloc &alloc = Alloc());
-		~vector();
+		explicit vector(const allocator_type& alloc = allocator_type()) : _array(nullptr), _size(0), _capacity(0) {
+			_alloc = alloc;
+		}
+
+		// Constructs a container with n elements. Each element is a copy of val.
+		explicit vector(size_type n, const value_type& val = value_type(),
+                 const allocator_type& alloc = allocator_type())
+		{
+			// _alloc = alloc;
+			// _array = _alloc.allocate(n);
+			// _size = n;
+			// _capacity = n;
+			// for (size_type i = 0; i < n; ++i) {
+			// 	_alloc.construct(_array + i, value);
+			// }
+		}
+
+		vector& operator=(const vector& x) {
+			if (this != &x) {
+				_alloc = x._alloc;
+				for ( size_type i = 0; i < _size; ++i) {
+					_alloc.destroy( _array + i );
+				}
+				if (_capacity) {
+					_alloc.deallocate( _array, _capacity);
+				}
+				reserve(x._capacity);
+				for (size_type i = 0; i < x._size; ++i) {
+					_alloc.construct(_array + i, x._array[i]);
+				}
+				_size = x._size;
+			}
+			return *this;
+		}
 
 
-		T& operator[](size_t index)
+		template <class InputIterator>
+        vector (InputIterator first, InputIterator last,
+                 const allocator_type& alloc = allocator_type());
+				//  Constructs a container with as many elements as the range [first,last), with each element
+				// constructed from its corresponding element in that range, in the same order.
+		vector (const vector& x)
+		{
+			*this = x;
+		}
+
+		virtual ~vector() {
+			if (_capacity > 0)
+				_alloc.deallocate(_array, _capacity);
+			// deallocate capacity
+		}
+		// This destroys all container elements, and deallocates all the storage capacity allocated by the vector using its allocator.
+
+
+		value_type& operator[](size_type index)
 		{
 			return _array[index];
 		}
 
-		T& at(size_t index)
+		value_type& at(size_type index)
 		{
-			if (index > _size) throw std::out_of_range("...");
+			if (index > _size) throw std::out_of_range("Out of range");
 			return _array[index];
 		}
 
-		const T& operator[](size_t index) const
+		const value_type& operator[](size_type index) const
 		{
 			return _array[index];
 		}
 
-		const T& at(size_t index) const
+		const value_type& at(size_type index) const
 		{
-			if (index > _size) throw std::out_of_range("...");
+			if (index > _size) throw std::out_of_range("Out of range");
 			return _array[index];
 		}
+		/*  ==== SIZE =====  */
+		size_type size() const { return _size;}
 
-		size_t size() const
-		{
-			return _size;
-		}
+		// size_type max_size() const
+		// {
+		// 	return std::numeric_limits<double>::max()
+		// }
 
-		size_t capacity() const
-		{
-			return _capacity;
-		}
+		size_type capacity() const { return _capacity; }
 
-		void resize(size_t n, const T& value = T())
-		{
-			if (n < _capacity)
-				reserve (_capacity);
-			for
-		}
+		bool empty() const { return !_size; }
 
-		void reserve(size_t n)
+		// void resize(size_type n, const T& value = T())
+		// {
+		// 	if (n < _capacity)
+		// 		reserve (_capacity);
+		// 	for
+		// }
+
+		void reserve(size_type n)
 		{
 			if (n <= _capacity)
 				return;
-			// T* tmp = reinterpret_cast<T*>(new int8_t[n * sizeof(T)]);
-
-			T *tmp = _alloc.allocate(n);
-			try {
-				std::uninitialized_copy(_array, _array + _size, tmp);
-			} catch (...) {
-				// delete[] reinterpret_cast<int8_t*>(tmp);
-					_alloc.deallocate(tmp, n);
-				throw;
+			value_type *tmp = _alloc.allocate(n);
+			for (size_t i = 0; i < _size; ++i) {
+				_alloc.construct(tmp + i, _array[i]);
+				// new(tmp + i) T(_array[i]);
 			}
-
-
-			// for (size_t i = 0; i < _size; ++i)
-			// {
-			// 	new(tmp + j) T(_array[i]);
-			// }
-			// for (size_t i = 0; i < _size; ++i)
-			// {
-			// 	(_array + i)->~T();
-			// }
-			// delete[] reinterpret_cast<int8_t*>(_array);
-			// _array = tmp;
+			for (size_t i = 0; i < _size; ++i) {
+				_alloc.destroy(_array + i);
+				// (_array + i)->~T();
+			}
+			_array = tmp;
+			_capacity = n;
 		}
 
-		void push_back(const T& value)
+		void push_back(const value_type& value)
 		{
-			if (_size == _capacity)
+			if (_size == _capacity) {
+				if (_size == 0) {
+					reserve(1);
+					++_size;
+					return;
+				}
 				reserve (_capacity * 2);
-			new (_array + _size) T(value);
+			}
+			new (_array + _size) value_type(value);
 			++_size;
 		}
 
 		void pop_back()
 		{
-			(_array + _size - 1)->~T();
+			(_array + _size - 1)->~value_type();
 			--_size;
 		}
 	};
@@ -113,11 +167,36 @@ namespace ft
 
 int main()
 {
-	std::vector<int> v1;
-	for (int i = 0; i < 25; ++i)
-	{
-		v1.push_back(i);
-		std::cout << v1.size() << ' ' << v1.capacity() << std::endl;
-	}
+	// std::vector<int> v1(10, 9);
+	// std::cout << v1.capacity() << std::endl;
+	// std::vector<int> v4 = v1;
+	// v1[1] = 0;
+	// std::cout << v4.capacity() << std::endl;
+	// for (size_t i = 0; i < 10; i++)
+	// {
+	// 	std::cout << v4[i] <<std::endl;
+	// }
+	// std::cout << "================" << std::endl;
+	// for (size_t i = 0; i < 10; i++)
+	// {
+	// 	std::cout << v1[i] <<std::endl;
+	// }
 
+	ft::vector<int> v2;
+	// ft::vector<int> v3(1, 0);
+
+
+	v2.push_back(1);
+	v2.push_back(2);
+	v2.push_back(3);
+	v2.reserve(100);
+
+	ft::vector<int> v5(v2);
+	// std::cout << "1111" << std::endl;
+	// std::cout << v2.empty() << std::endl;
+	std::cout << v5.size() << std::endl;
+	std::cout << v5.capacity() << std::endl;
+	// v2.pop_back();
+	// std::cout << v2.size() << std::endl;
+	// std::cout << v2.capacity() << std::endl;
 }
