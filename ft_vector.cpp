@@ -20,6 +20,10 @@ namespace ft
 
 		/*
 		typedef for iterators
+		typedef RandomAccess< T >					iterator;
+		typedef ConstRandomAccess< T >				const_iterator;
+		typedef ReverseRandomAccess< T >				reverse_iterator;
+		typedef ConstReverseRandomAccess< T >			const_reverse_iterator;
 		*/
 
 		typedef std::size_t									size_type;
@@ -53,10 +57,10 @@ namespace ft
 			if (this != &x) {
 				_alloc = x._alloc;
 				for ( size_type i = 0; i < _size; ++i) {
-					_alloc.destroy( _array + i );
+					_alloc.destroy(_array + i);
 				}
 				if (_capacity) {
-					_alloc.deallocate( _array, _capacity);
+					_alloc.deallocate(_array, _capacity);
 				}
 				reserve(x._capacity);
 				for (size_type i = 0; i < x._size; ++i) {
@@ -67,14 +71,12 @@ namespace ft
 			return *this;
 		}
 
-
 		template <class InputIterator>
         vector (InputIterator first, InputIterator last,
                  const allocator_type& alloc = allocator_type());
 				//  Constructs a container with as many elements as the range [first,last), with each element
 				// constructed from its corresponding element in that range, in the same order.
-		vector (const vector& x)
-		{
+		vector (const vector& x) {
 			*this = x;
 		}
 
@@ -86,19 +88,16 @@ namespace ft
 		// This destroys all container elements, and deallocates all the storage capacity allocated by the vector using its allocator.
 
 
-		value_type& operator[](size_type index)
-		{
+		value_type& operator[](size_type index) {
 			return _array[index];
 		}
 
-		value_type& at(size_type index)
-		{
+		value_type& at(size_type index) {
 			if (index > _size) throw std::out_of_range("Out of range");
 			return _array[index];
 		}
 
-		const value_type& operator[](size_type index) const
-		{
+		const value_type& operator[](size_type index) const {
 			return _array[index];
 		}
 
@@ -110,21 +109,25 @@ namespace ft
 		/*  ==== SIZE =====  */
 		size_type size() const { return _size;}
 
-		// size_type max_size() const
-		// {
-		// 	return std::numeric_limits<double>::max()
-		// }
+		size_type max_size() const {
+			return (std::numeric_limits<size_type>::max() / (sizeof(value_type)));
+		}
 
 		size_type capacity() const { return _capacity; }
 
 		bool empty() const { return !_size; }
 
-		// void resize(size_type n, const T& value = T())
-		// {
-		// 	if (n < _capacity)
-		// 		reserve (_capacity);
-		// 	for
-		// }
+		void resize(size_type n, const value_type& value = value_type())
+		{
+			if (n == _size)
+				return;
+			while (_size != n){
+				if (_size > n)
+					pop_back();
+				else
+					push_back(value);
+			}
+		}
 
 		void reserve(size_type n)
 		{
@@ -146,14 +149,17 @@ namespace ft
 		void push_back(const value_type& value)
 		{
 			if (_size == _capacity) {
-				if (_size == 0) {
+				if (!_size) {
 					reserve(1);
+					_alloc.construct(_array, value);
+					// new (_array + _size) value_type(value);
 					++_size;
 					return;
 				}
 				reserve (_capacity * 2);
 			}
-			new (_array + _size) value_type(value);
+			_alloc.construct(_array + _size, value);
+			// new (_array + _size) value_type(value);
 			++_size;
 		}
 
@@ -184,19 +190,29 @@ int main()
 
 	ft::vector<int> v2;
 	// ft::vector<int> v3(1, 0);
-
-
 	v2.push_back(1);
 	v2.push_back(2);
 	v2.push_back(3);
+	std::cout << v2[0] << std::endl;
 	v2.reserve(100);
 
-	ft::vector<int> v5(v2);
+	// ft::vector<int> v5 = v2;
+	// std::cout << v5[2] << std::endl;
+
+	// v2.pop_back();
+
 	// std::cout << "1111" << std::endl;
 	// std::cout << v2.empty() << std::endl;
-	std::cout << v5.size() << std::endl;
-	std::cout << v5.capacity() << std::endl;
-	// v2.pop_back();
-	// std::cout << v2.size() << std::endl;
+	// std::cout << v5.size() << std::endl;
+	// std::cout << v5.capacity() << std::endl;
+	std::cout << v2.size() << std::endl;
+	v2.resize(10, 7);
+	std::cout << v2.size() << std::endl;
+	for (size_t i = 0; i < v2.size(); ++i)
+	{
+		std::cout << v2[i] << " ";
+	}
+
+
 	// std::cout << v2.capacity() << std::endl;
 }
