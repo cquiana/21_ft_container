@@ -47,6 +47,8 @@ public:
    int imember;
 };
 
+
+
 int main( )
 {
    // The first form of new delete
