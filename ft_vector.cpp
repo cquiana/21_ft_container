@@ -218,27 +218,53 @@ namespace ft
 
 int main()
 {
-	// std::vector<int> v1(10, 9);
-	// std::cout << v1.capacity() << std::endl;
-	// std::vector<int> v4 = v1;
-
-	ft::vector<int> v2;
-	// ft::vector<int> v3(1, 0);
-	v2.push_back(1);
-	v2.push_back(2);
-	v2.push_back(3);
-	ft::vector<int>::iterator it = v2.begin();
-	ft::vector<int>::iterator it2 = v2.end();
-	// std::cout << v2[0] << std::endl;
-	it++;
-	std::cout << *it << std::endl;
-
-	for (; it != it2; ++it)
+	std::vector<int> v1;
+	for (size_t i = 0; i < 10; i++)
 	{
-	std::cout << *it << std::endl;
+		v1.push_back(i);
 	}
 
-	v2.reserve(100);
+	// std::vector<int>::iterator itv = v1.begin();
+	// std::vector<int>::iterator itv2 = v1.end();
+	// std::cout << itv - itv2 << std::endl;
+
+	// // if (itv > itv2)
+	// itv[0] = 22;
+	// std::cout << *itv << std::endl;
+	// // std::cout << *itv2 << std::endl;
+
+
+	ft::vector<int> v2;
+
+	for (size_t i = 0; i < 10; i++)
+	{
+		v2.push_back(i);
+	}
+
+
+	// v2.push_back(2);
+	// v2.push_back(3);
+	ft::vector<int>::iterator it = v2.begin();
+	ft::vector<int>::iterator it2 = v2.end();
+	std::cout << it - it << std::endl;
+
+	// ft::vector<int>::iterator it2 = it + 7;
+	// it[0] = 1223232;
+	// it += 5;
+	// ft::vector<int>::iterator it3 =  v2.begin();
+	// if (it <= it2)
+	// std::cout << *it << std::endl;
+	// std::cout << *it2 << std::endl;
+	// std::cout << "*****" << std::endl;
+	// it--;
+	// std::cout << *it << std::endl;
+
+	// for (; it != it2; ++it)
+	// {
+	// std::cout << *it << std::endl;
+	// }
+
+	// v2.reserve(100);
 
 	// ft::vector<int> v5 = v2;
 	// std::cout << v5[2] << std::endl;
