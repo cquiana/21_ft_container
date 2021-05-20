@@ -6,13 +6,7 @@
 #include <limits>
 
 #include "VectoIterator.hpp"
-#include "is_integer.hpp"
-
-template<bool B, class T = void>
-struct enable_if {};
-
-template<class T>
-struct enable_if<true, T> { typedef T type; };
+#include "utils.hpp"
 
 namespace ft
 {
@@ -28,9 +22,9 @@ namespace ft
 		typedef typename allocator_type::const_pointer		const_pointer;
 
 		typedef random_access_iterator<T>					iterator;
-		// typedef const_random_access_iterator<T>				const_iterator;
-		// typedef reverse_random_access_iterator<T>			reverse_iterator;
-		// typedef const_reverse_random_access_iterator<T>		const_reverse_iterator;
+		typedef const_random_access_iterator<T>				const_iterator;
+		typedef reverse_random_access_iterator<T>			reverse_iterator;
+		typedef const_reverse_random_access_iterator<T>		const_reverse_iterator;
 
 		typedef std::size_t									size_type;
 		typedef std::ptrdiff_t								difference_type;
@@ -58,7 +52,7 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		vector (typename enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first, InputIterator last,
+		vector (typename ft::enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first, InputIterator last,
 				const allocator_type& alloc = allocator_type()) {
 					_alloc = alloc;
 					difference_type n = last - first;
@@ -104,22 +98,21 @@ namespace ft
 
 		/* ===== ITERATORS ==== */
 
+		iterator begin() { return (iterator(_array)); }
 
-		iterator begin() {
-			return (iterator(_array));
-		}
-		// const_iterator begin() const;
+		const_iterator begin() const { return (iterator(_array)); }
 
-		iterator end() {
-			return (iterator(_array + _size));
-		}
-		// const_iterator end() const;
+		iterator end() { return (iterator(_array + _size)); }
 
-		// reverse_iterator rbegin();
-		// const_reverse_iterator rbegin() const;
+		const_iterator end() const { return (iterator(_array + _size)); }
 
-		// reverse_iterator rend();
-		// const_reverse_iterator rend() const;
+		reverse_iterator rbegin() { return reverse_iterator(_array + (_size - 1)); }
+
+		const_reverse_iterator rbegin() const { return reverse_iterator(_array + (_size - 1)); }
+
+		reverse_iterator rend() { return reverse_iterator(_array - 1); }
+
+		const_reverse_iterator rend() const { return reverse_iterator(_array - 1); }
 
 
 		/*  ==== SIZE =====  */
@@ -200,7 +193,7 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		void assign(typename enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first,
+		void assign(typename ft::enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first,
 					InputIterator last) {
 			clear();
 			difference_type newCap = last - first;
@@ -264,7 +257,7 @@ namespace ft
 
 		template <class InputIterator>
 		void insert (iterator position,
-			typename enable_if<!ft::is_integer<InputIterator>::value,
+			typename ft::enable_if<!ft::is_integer<InputIterator>::value,
 			InputIterator>::type first, InputIterator last) {
 			difference_type diff = position - this->begin();
 			difference_type count = last - first;
@@ -306,7 +299,13 @@ namespace ft
 			return last;
 		}
 
-		void swap (vector& x);
+		void swap (vector& x) {
+			ft::swap(_alloc, x._alloc);
+			ft::swap(_array, x._array);
+			ft::swap(_size, x._size);
+			ft::swap(_capacity, x._capacity);
+
+		}
 
 		void clear() {
 			if (!_size)
@@ -316,6 +315,56 @@ namespace ft
 			}
 			_size = 0;
 		}
+
+	};
+
+	template<class Alloc>
+	class vector<bool, Alloc> {
+	public:
+		void hello() const {
+//			std::cout << "this is vector<bool>" << std::endl;
+		}
+	};
+
+	template <class T, class Alloc>
+	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		if (lhs.size() != rhs.size())
+			return false;
+		for (size_t i = 0; i < lhs.size(); ++i){
+			if (lhs[i] != rhs[i])
+				return false;
+		}
+		return true;
+	}
+
+	template <class T, class Alloc>
+	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return !(lhs == rhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return (ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+	}
+
+	template <class T, class Alloc>
+	bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return !(rhs < lhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return (rhs < lhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return !(lhs < rhs);
+	}
+
+	template <class T, class Alloc>
+	void	swap (vector<T, Alloc>& x, vector<T, Alloc>& y) {
+		x.swap(y);
 	};
 }
 
@@ -333,22 +382,29 @@ int main()
 	{
 		v11.push_back(77);
 	}
-	std::vector<int>::iterator itv = v1.begin();
-	std::vector<int>::iterator itv2 = v1.end();
-	std::vector<int>::iterator itv11 = v11.begin();
-	std::vector<int>::iterator itv112 = v11.end();
+	std::vector<int>::reverse_iterator itv = v1.rbegin();
+	std::vector<int>::reverse_iterator itv2 = v1.rend();
+	std::cout << itv2 - itv << std::endl;
+
+	std::vector<int>::const_iterator itv11 = v1.begin();
+	std::vector<int>::iterator itv112 = v1.end();
 	// std::vector<int>::iterator itv3 = v1.erase(itv + 5);
-	// std::cout << *itv << std::endl;
+	// *itv11;
+	// std::vector<int>::const_iterator itv111 = v1 += 3;
+
+
+	// if (itv11 < itv112)
+	// std::cout << "std const " << *itv11 << std::endl;
 	// v1.insert(itv + 5, 10, 99);
 	// std::cout << *itv3 << std::endl;
-	v1.insert(itv + 5, itv11, itv112);
-	for (size_t i = 0; i < v1.size(); i++)
-	{
-		std::cout << v1[i] << " ";
-	}
-	std::cout << std::endl;
-	std::cout << "size = " << v1.size() << std::endl;
-	std::cout << "cap = " << v1.capacity() << std::endl;
+	// v1.insert(itv + 5, itv11, itv112);
+	// for (size_t i = 0; i < v1.size(); i++)
+	// {
+	// 	std::cout << v1[i] << " ";
+	// }
+	// std::cout << std::endl;
+	// std::cout << "size = " << v1.size() << std::endl;
+	// std::cout << "cap = " << v1.capacity() << std::endl;
 	// std::cout << "size = " << v1.size() << std::endl;
 	// std::cout << "cap = " << v1.capacity() << std::endl;
 	// v11.assign(itv, itv2);
@@ -378,6 +434,7 @@ int main()
 
 	}
 	ft::vector<int> v22;
+
 	for (size_t i = 0; i < 10; i++)
 	{
 		v22.push_back(77);
@@ -388,33 +445,73 @@ int main()
 	// std::cout << v2.size() << std::endl;
 	// std::cout << v2.capacity() << std::endl;
 
-
+	// v22.swap(v2);
 	// v2.push_back(2);
 	// v2.push_back(3);
 	ft::vector<int>::iterator it = v2.begin();
 	ft::vector<int>::iterator it2 = v2.end();
-	ft::vector<int>::iterator it22 = v22.begin();
-	ft::vector<int>::iterator it222 = v22.end();
+	ft::vector<int>::const_iterator it22 = v2.begin();
+	ft::vector<int>::iterator it222 = v2.end();
 	// ft::vector<int>::iterator it3 = v2.erase(it + 5);
 	// std::cout << v2.size() << std::endl;
 	// ft::vector<int>::iterator it3 = v2.insert(it + 5, 99);
-	// std::cout << *it3 << std::endl;
+
+	// std::cout << "const_it " << *it22 << std::endl;
 	// v22.assign(it, it2);
 	// v2.insert(it + 5, 10, 99);
-	v2.insert(it + 5, it22, it222);
+	// v2.insert(it + 5, it22, it222);
+	// for (size_t i = 0; i < v2.size(); i++)
+	// {
+	// 	std::cout << v2[i] << " ";
+	// }
+	// std::cout << std::endl;
+
+	ft::vector<int>::reverse_iterator rit = v2.rbegin();
+	ft::vector<int>::reverse_iterator rend = v2.rend();
+	// for (; rit !=  rend; ++rit)
+	// {
+		// std::cout << rit[0] << std::endl;
+		// rit++;
+		// std::cout << *rit << std::endl;
+		// ++rit;
+		// std::cout << *rit << std::endl;
+
+		// rit--;
+		// std::cout << *rit << std::endl;
+		// --rit;
+		// std::cout << *rit << std::endl;
+
+		// ft::vector<int>::reverse_iterator rit2 = rit += 2;
+		// std::cout << *rit2 << std::endl;
+		// ft::vector<int>::reverse_iterator rit3 = rit2 -= 2;
+		// std::cout << *rit3 << std::endl;
+		std::cout << rend - rit << std::endl;
+
+
+
+	// }
 	for (size_t i = 0; i < v2.size(); i++)
 	{
 		std::cout << v2[i] << " ";
 	}
 	std::cout << std::endl;
-	std::cout << "size = " << v2.size() << std::endl;
-	std::cout << "cap = " << v2.capacity() << std::endl;
-	ft::vector<int> v4(v2.begin(), v2.end());
-	for (size_t i = 0; i < v4.size(); i++)
+
+	ft::vector<int> v5;
+
+	for (size_t i = 0; i < 8; i++)
 	{
-		std::cout << v4[i] << " ";
+		v5.push_back(i);
+		// std::cout << v2.size() << std::endl;
+
 	}
-	std::cout << std::endl;
+	// std::cout << "size = " << v2.size() << std::endl;
+	// std::cout << "cap = " << v2.capacity() << std::endl;
+	// ft::vector<int> v4(v2.begin(), v2.end());
+	// for (size_t i = 0; i < v4.size(); i++)
+	// {
+	// 	std::cout << v4[i] << " ";
+	// }
+	// std::cout << std::endl;
 
 	// std::cout << v22.size() << std::endl;
 	// std::cout << v22.capacity() << std::endl;
