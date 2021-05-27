@@ -2,6 +2,14 @@
 
 namespace ft
 {
+    template<typename T>
+		struct Node
+		{
+			T       *_data;
+			Node    *_next;
+			Node    *_prev;
+		};
+
 	struct is_int { };
 	struct not_int { };
 
