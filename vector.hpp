@@ -1,8 +1,8 @@
-#include <memory>
-#include <stdexcept>
-#include <limits>
+#pragma once
+
 
 #include "VectoIterator.hpp"
+// #include "ReverseIterator.hpp"
 #include "utils.hpp"
 
 namespace ft
@@ -18,16 +18,17 @@ namespace ft
 		typedef typename allocator_type::pointer			pointer;
 		typedef typename allocator_type::const_pointer		const_pointer;
 
-		typedef random_access_iterator<T>					iterator;
-		typedef const_random_access_iterator<T>				const_iterator;
-		typedef reverse_random_access_iterator<T>			reverse_iterator;
-		typedef const_reverse_random_access_iterator<T>		const_reverse_iterator;
+		typedef ft::vector_iterator<T>						iterator;
+		typedef ft::vector_iterator<const T>				const_iterator;
+		typedef ft::reverse_iterator<iterator>				reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
 		typedef std::size_t									size_type;
 		typedef std::ptrdiff_t								difference_type;
 
 	private:
-		value_type*		_array;
+		pointer			_array;
+		// value_type*			_array;
 		size_type		_size;
 		size_type 		_capacity;
 		allocator_type	_alloc;
@@ -49,8 +50,8 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		vector (typename ft::enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first, InputIterator last,
-				const allocator_type& alloc = allocator_type()) {
+		vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
+				typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0) {
 					_alloc = alloc;
 					difference_type n = last - first;
 					_array = _alloc.allocate(n);
@@ -81,8 +82,10 @@ namespace ft
 			return *this;
 		}
 
-		vector (const vector& x) {
-			*this = x;
+		vector (const vector& x) : _size(x._size), _capacity(x._capacity), _alloc(x._alloc) {
+			_array = _alloc.allocate(_capacity);
+			for (size_type i = 0; i < _size; ++i)
+				_alloc.construct(_array + i, x[i]);
 		}
 
 		virtual ~vector() {
@@ -95,21 +98,21 @@ namespace ft
 
 		/* ===== ITERATORS ==== */
 
-		iterator begin() { return (iterator(_array)); }
+		iterator begin() { return (_array); }
 
-		const_iterator begin() const { return (iterator(_array)); }
+		const_iterator begin() const { return (_array); }
 
-		iterator end() { return (iterator(_array + _size)); }
+		iterator end() { return (_array + _size); }
 
-		const_iterator end() const { return (iterator(_array + _size)); }
+		const_iterator end() const { return (_array + _size); }
 
-		reverse_iterator rbegin() { return reverse_iterator(_array + (_size - 1)); }
+		reverse_iterator rbegin() { return reverse_iterator(end()); }
 
-		const_reverse_iterator rbegin() const { return reverse_iterator(_array + (_size - 1)); }
+		const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
 
-		reverse_iterator rend() { return reverse_iterator(_array - 1); }
+		reverse_iterator rend() { return reverse_iterator(begin()); }
 
-		const_reverse_iterator rend() const { return reverse_iterator(_array - 1); }
+		const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
 
 		/*  ==== SIZE =====  */
@@ -160,12 +163,14 @@ namespace ft
 		const_reference operator[](size_type index) const { return _array[index]; }
 
 		reference at(size_type index) {
-			if (index > _size) throw std::out_of_range("Out of range");
+			if (index > _size)
+				throw std::out_of_range("Out of range");
 			return _array[index];
 		}
 
 		const_reference at(size_type index) const {
-			if (index > _size) throw std::out_of_range("Out of range");
+			if (index > _size)
+				throw std::out_of_range("Out of range");
 			return _array[index];
 		}
 
@@ -180,7 +185,7 @@ namespace ft
 		/* ==== Modifiers: ===== */
 
 		void assign(size_type n, const value_type& value) {
-			// reserve(n);
+			reserve(n);
 			clear();
 			// capacity ???
 			for (size_type i = 0; i < n; ++i) {
@@ -190,8 +195,8 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		void assign(typename ft::enable_if<!ft::is_integer<InputIterator>::value, InputIterator>::type first,
-					InputIterator last) {
+		void assign(InputIterator first, InputIterator last,
+				typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0) {
 			clear();
 			difference_type newCap = last - first;
 			reserve(newCap);
@@ -253,9 +258,7 @@ namespace ft
 		}
 
 		template <class InputIterator>
-		void insert (iterator position,
-			typename ft::enable_if<!ft::is_integer<InputIterator>::value,
-			InputIterator>::type first, InputIterator last) {
+		void insert (iterator position, InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = 0) {
 			difference_type diff = position - this->begin();
 			difference_type count = last - first;
 			if (_size + count > _capacity) {
@@ -315,13 +318,6 @@ namespace ft
 
 	};
 
-	template<class Alloc>
-	class vector<bool, Alloc> {
-	public:
-		void hello() const {
-//			std::cout << "this is vector<bool>" << std::endl;
-		}
-	};
 
 	template <class T, class Alloc>
 	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
@@ -362,5 +358,6 @@ namespace ft
 	template <class T, class Alloc>
 	void	swap (vector<T, Alloc>& x, vector<T, Alloc>& y) {
 		x.swap(y);
-	};
+	}
+
 }
